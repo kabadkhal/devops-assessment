@@ -1,0 +1,155 @@
+services:
+
+  # --------------------------------------------------
+  # Traefik Reverse Proxy
+  # --------------------------------------------------
+  traefik:
+    image: traefik:v3.6
+
+    container_name: devops-traefik-prod
+
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+
+    ports:
+      - "80:80"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    restart: unless-stopped
+
+
+  # --------------------------------------------------
+  # PostgreSQL
+  # --------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+
+    container_name: devops-postgres-prod
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: devopsdb
+
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d devopsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+
+  # --------------------------------------------------
+  # S3-Compatible Object Storage
+  # --------------------------------------------------
+  localstack:
+    image: localstack/localstack:3.8
+
+    container_name: devops-localstack-prod
+
+    environment:
+      SERVICES: s3
+      AWS_DEFAULT_REGION: us-east-1
+
+    ports:
+      - "4566:4566"
+
+    volumes:
+      - localstack_prod_data:/var/lib/localstack
+
+    restart: unless-stopped
+
+
+  # --------------------------------------------------
+  # Backend API
+  # --------------------------------------------------
+  backend:
+    image: kabadkhal/devops-assessment:backend-e2a091e6892ebdbf7bc0b88cec06666544366e14
+
+    container_name: devops-backend-prod
+
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: devopsdb
+
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+
+      S3_ENDPOINT_URL: http://localstack:4566
+      S3_PUBLIC_ENDPOINT_URL: http://localhost:4566
+      S3_BUCKET_NAME: devops-files
+
+      CORS_ORIGINS: http://app.debyez.localhost
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      localstack:
+        condition: service_started
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-prod.rule=Host(`api.debyez.localhost`)"
+      - "traefik.http.routers.api-prod.entrypoints=web"
+      - "traefik.http.services.api-prod.loadbalancer.server.port=8000"
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+
+  # --------------------------------------------------
+  # Frontend
+  # --------------------------------------------------
+  frontend:
+    image: kabadkhal/devops-assessment:frontend-e2a091e6892ebdbf7bc0b88cec06666544366e14
+
+    container_name: devops-frontend-prod
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app-prod.rule=Host(`app.debyez.localhost`)"
+      - "traefik.http.routers.app-prod.entrypoints=web"
+      - "traefik.http.services.app-prod.loadbalancer.server.port=80"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+      traefik:
+        condition: service_started
+
+    restart: unless-stopped
+
+
+# --------------------------------------------------
+# Persistent Volumes
+# --------------------------------------------------
+volumes:
+
+  postgres_prod_data:
+
+  localstack_prod_data:
