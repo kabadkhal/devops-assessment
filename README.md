@@ -91,7 +91,11 @@ The implementation focuses on:
                            +-----------+  |   :4566   |
                                           +-----------+
                                     
+<<<<<<< HEAD
 ## Application overview
+=======
+#### Application URLs
+>>>>>>> ea3d1a967f7e1eeceff23fbf333f53908b8eb151
 
 | Component      | URL                                                                              |
 | -------------- | -------------------------------------------------------------------------------- |
@@ -116,18 +120,32 @@ The implementation focuses on:
 | Docker Hub         | Container image registry       |
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ea3d1a967f7e1eeceff23fbf333f53908b8eb151
 # Containerization
 ## Backend Dockerfile
 
 The backend is containerized using Python 3.12 Slim.
+<<<<<<< HEAD
 ## The Backend Container
+=======
+
+## The backend container:
+
+>>>>>>> ea3d1a967f7e1eeceff23fbf333f53908b8eb151
     -Installs Python dependencies
     -Copies the application source
     -Runs FastAPI using Uvicorn
     -Listens internally on port 8000
     -Provides a health check through Docker Compose
 
+<<<<<<< HEAD
 ## File:
+=======
+# File:
+>>>>>>> ea3d1a967f7e1eeceff23fbf333f53908b8eb151
 
     - backend/Dockerfile
 
@@ -135,6 +153,7 @@ The backend is containerized using Python 3.12 Slim.
 
     - uvicorn app.main:app --host 0.0.0.0 --port 8000
 
+<<<<<<< HEAD
 # Repository Structure
 
 ├── .github/
@@ -447,3 +466,5 @@ Production does not rebuild application images
 Production health checks pass
 Rollback to a previous known-good SHA works        
     
+=======
+>>>>>>> ea3d1a967f7e1eeceff23fbf333f53908b8eb151
