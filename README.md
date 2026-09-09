@@ -117,12 +117,12 @@ The implementation focuses on:
 
 
 
-#Containerization
-##Backend Dockerfile
+# Containerization
+## Backend Dockerfile
 
 The backend is containerized using Python 3.12 Slim.
 
-##The backend container:
+## The backend container:
 
     -Installs Python dependencies
     -Copies the application source
@@ -130,7 +130,7 @@ The backend is containerized using Python 3.12 Slim.
     -Listens internally on port 8000
     -Provides a health check through Docker Compose
 
-## File:
+# File:
 
     - backend/Dockerfile
 
